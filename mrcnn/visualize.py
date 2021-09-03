@@ -12,7 +12,7 @@ import sys
 import random
 import itertools
 import colorsys
-
+import pandas as pd
 import numpy as np
 from skimage.measure import find_contours
 import matplotlib.pyplot as plt
@@ -118,7 +118,8 @@ def display_instances(image, boxes, masks, class_ids, class_names,
     ax.set_xlim(-10, width + 10)
     ax.axis('off')
     ax.set_title(title)
-
+    global c1,c2
+    c1=[]
     masked_image = image.astype(np.uint32).copy()
     for i in range(N):
         color = colors[i]
@@ -140,7 +141,9 @@ def display_instances(image, boxes, masks, class_ids, class_names,
             #score = scores[i] if scores is not None else None
             score = ""
             label = class_names[class_id]
+            
             caption = "{} {:.3f}".format(label, score) if score else label
+            c1.append(label)
             print(label)
         else:
             caption = captions[i]
@@ -163,6 +166,21 @@ def display_instances(image, boxes, masks, class_ids, class_names,
             verts = np.fliplr(verts) - 1
             p = Polygon(verts, facecolor="none", edgecolor=color)
             ax.add_patch(p)
+    class_name = ['cake', 'burger', 'french_fries', 'chicken',
+               'toast', 'egg', 'pizza', 'cookie', 'hot dog', 'steak']
+               
+    c=[]
+    for i in range(10):
+        c.append(i)
+    cal=pd.Series(data=[100,235,365,294,170,140,300,280,200,150])
+    Food_data=pd.DataFrame(list(zip(class_name,c,cal)),columns=['name','value','calories'])
+    data=dict(zip(Food_data.name,Food_data.calories))
+
+    j=[]
+    for i in c1:
+        j.append(data[i])
+    food_calories=np.sum(j)
+    print("total calories in the food = {}".format(food_calories))
     ax.imshow(masked_image.astype(np.uint8))
     if auto_show:
         plt.savefig(r'C:\Users\Administrator\Mask_rcnn\calorie_pred\Calorie-Predictor\static\file.jpg')
