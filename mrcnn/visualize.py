@@ -19,10 +19,11 @@ import matplotlib.pyplot as plt
 from matplotlib import patches,  lines
 from matplotlib.patches import Polygon
 import IPython.display
-
+import joblib
+model=joblib.load(r'C:\Users\Administrator\test\Tech_project\Calorie-Predictor\reg_model.sav')
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../")
-
+global C2
 # Import Mask RCNN
 sys.path.append(ROOT_DIR)  # To find local version of the library
 from mrcnn import utils
@@ -118,7 +119,7 @@ def display_instances(image, boxes, masks, class_ids, class_names,
     ax.set_xlim(-10, width + 10)
     ax.axis('off')
     ax.set_title(title)
-    global c1,c2
+    global c1
     c1=[]
     masked_image = image.astype(np.uint32).copy()
     for i in range(N):
@@ -180,12 +181,33 @@ def display_instances(image, boxes, masks, class_ids, class_names,
     for i in c1:
         j.append(data[i])
     food_calories=np.sum(j)
-    print("total calories in the food = {}".format(food_calories))
+    print("total calories in this food item = {}".format(food_calories))
+    display_instances.food_calories=food_calories
     ax.imshow(masked_image.astype(np.uint8))
     if auto_show:
         plt.savefig(r'C:\Users\Administrator\Mask_rcnn\calorie_pred\Calorie-Predictor\static\file.jpg')
         #plt.show()
+def Food_intake_recommendation(TotalSteps, TotalDistance, LoggedActivitiesDistance, VeryActiveDistance, ModeratelyActiveDistance,
+                  LightActiveDistance,SedentaryActiveDistance,VeryActiveMinutes,FairlyActiveMinutes,LightlyActiveMinutes,SedentaryMinutes,Calories,Calorie_consumption_day,Net_consumed_Cal_day):
+    
+    
+    test_data = {"TotalSteps": TotalSteps, "TotalDistance": TotalDistance, "LoggedActivitiesDistance": LoggedActivitiesDistance, "VeryActiveDistance": VeryActiveDistance,
+                 "ModeratelyActiveDistance": ModeratelyActiveDistance, "LightActiveDistance": LightActiveDistance, "SedentaryActiveDistance": SedentaryActiveDistance, "VeryActiveMinutes": VeryActiveMinutes,
+                 "FairlyActiveMinutes": FairlyActiveMinutes, "LightlyActiveMinutes": LightlyActiveMinutes,"SedentaryMinutes":SedentaryMinutes,"Calories":Calories
+                ,"Calorie_consumption_day":Calorie_consumption_day,"Net_consumed_Cal_day":Net_consumed_Cal_day}
 
+    print("Test Data :", test_data)
+    test_data_df = pd.DataFrame([test_data])
+    
+    Variation_cal = model.predict(test_data_df)[0]
+    total_cal = round(Variation_cal+display_instances.food_calories)
+    print(total_cal)
+    if total_cal in range (-500,100):
+        print("Recommendation: No correction needed.")
+    elif total_cal < 0:
+        print("Recommendation: You can still consume upto",abs(total_cal+500),"Calories.")
+    else:
+        print("Recommendation: You have to burn upto",total_cal-100,"Calories.") 
 
 def display_differences(image,
                         gt_box, gt_class_id, gt_mask,
